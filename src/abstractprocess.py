@@ -1,7 +1,6 @@
 from __future__ import annotations
-
+import jsonpickle
 import asyncio
-import pickle
 import queue
 import random
 from abc import ABC, abstractmethod
@@ -14,17 +13,21 @@ class Message:
     """
     sender = 0
     content = ''
+    counter = 0
+    type = "MSG"
 
-    def __init__(self, content, sender):
+    def __init__(self, content, sender, type, counter):
         self.sender = sender
+        self.counter = counter
         self.content = content
+        self.type = type
 
     def encode(self) -> bytes:
         """
         Make sure we are serializable with EOF line ending
         :return: Bytestring of the object
         """
-        return pickle.dumps(self) + '\n'.encode()
+        return (jsonpickle.encode(self) + '\n').encode()
 
     @classmethod
     def decode(cls, bytestring) -> Message:
@@ -33,7 +36,7 @@ class Message:
         :param bytestring: bytestring of the Message object
         :return: Message object
         """
-        return pickle.loads(bytestring)
+        return jsonpickle.decode(bytestring)
 
 
 class MessageBuffer:
@@ -58,6 +61,9 @@ class MessageBuffer:
 
     def get(self):
         return self.messages.get()
+
+    def get_queue(self):
+        return self.messages.queue
 
 
 class AbstractProcess(ABC):
@@ -86,7 +92,7 @@ class AbstractProcess(ABC):
         """
         pass
 
-    async def _random_delay(self, min_time: int = None, max_time: int = None):
+    async def _random_delay(self, min_time: float = None, max_time: float = None):
         """
         Delays the execution for a random time N such that a <= N <= b for a <= b and b <= N <= a for b < a.
         :param min_time: minimum delay in seconds
@@ -112,6 +118,22 @@ class AbstractProcess(ABC):
         writer.write(m.encode())
         await writer.drain()
         writer.close()
+
+    # async def broadcast_message(self, m: Message):
+    #     """
+    #     Send a message asynchronous to all other processes.
+    #     :param m: Message object
+    #     :return:
+    #     """
+    #     # Retrieve addresses from address dictionary
+    #     for adress in self.adresses[i]:
+
+    #     host, port = self.addresses[to]
+    #     reader, writer = await asyncio.open_connection(host, port)
+    #     writer.write(m.encode())
+    #     await writer.drain()
+    #     writer.close()
+
 
     async def _handle_message(self, reader, writer):
         """
