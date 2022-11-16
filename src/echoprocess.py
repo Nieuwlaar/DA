@@ -16,7 +16,7 @@ class EchoProcess(AbstractProcess):
         # Only run in the beginning
         if self.first_cycle:
             # Compose message
-            msg = Message("Hello world", self.idx)
+            msg = Message("Walwin de walrus is fucking lelijk", self.idx)
             # Get first address we can find
             to = list(self.addresses.keys())[0]
             # Send message
