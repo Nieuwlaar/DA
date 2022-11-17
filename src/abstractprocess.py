@@ -15,12 +15,14 @@ class Message:
     content = ''
     counter = 0
     type = "MSG"
+    message_id = 0
 
-    def __init__(self, content, sender, type, counter):
-        self.sender = sender
-        self.counter = counter
+    def __init__(self, message_id, content, sender, type, counter):
+        self.message_id = message_id
         self.content = content
+        self.sender = sender
         self.type = type
+        self.counter = counter
 
     def encode(self) -> bytes:
         """
@@ -61,9 +63,10 @@ class MessageBuffer:
 
     def get(self):
         return self.messages.get()
-
-    def get_queue(self):
-        return self.messages.queue
+    
+    def queue_value(self, i):
+        if self.size() > 0:
+            return self.messages.queue[i]
 
 
 class AbstractProcess(ABC):
