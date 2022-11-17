@@ -17,11 +17,12 @@ class EchoProcess(AbstractProcess):
         # Only run in the beginning
         if self.first_cycle:
             # Compose message
-            msg = Message("Hello world", self.idx, self.counter)
+            msg = Message("Must consume Creatine" + str(self.idx), self.idx, self.counter)
             # Get first address we can find
-            to = list(self.addresses.keys())[0]
+            for i in range(len(self.addresses.keys())):
+                to = list(self.addresses.keys())[i]
             # Send message
-            await self.send_message(msg, to)
+                await self.send_message(msg, to)
             self.first_cycle = False
 
         # If we have a new message
@@ -29,9 +30,12 @@ class EchoProcess(AbstractProcess):
             # Retrieve message
             msg: Message = self.buffer.get()
             print(f'[{self.num_echo}] Got message "{msg.content}" from process {msg.sender}, counter: {msg.counter}')
+            print(f' self counter: {self.counter}, message counter: {msg.counter}')
             # Compose echo message
             echo_msg = Message(msg.content, self.idx, self.counter)
+            self.counter = max(self.counter, msg.counter)
             self.counter += 1
+            print(f' new self counter: {self.counter}')
             # Send echo message
             await self.send_message(echo_msg, msg.sender)
             self.num_echo -= 1
