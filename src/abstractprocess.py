@@ -14,11 +14,15 @@ class Message:
     sender = 0
     content = ''
     counter = 0
+    type = "MSG"
+    message_id = 0
 
-    def __init__(self, content, sender, counter):
-        self.sender = sender
-        self.counter = counter
+    def __init__(self, message_id, content, sender, type, counter):
+        self.message_id = message_id
         self.content = content
+        self.sender = sender
+        self.type = type
+        self.counter = counter
 
     def encode(self) -> bytes:
         """
@@ -59,6 +63,10 @@ class MessageBuffer:
 
     def get(self):
         return self.messages.get()
+    
+    def queue_value(self, i):
+        if self.size() > 0:
+            return self.messages.queue[i]
 
 
 class AbstractProcess(ABC):
@@ -113,6 +121,22 @@ class AbstractProcess(ABC):
         writer.write(m.encode())
         await writer.drain()
         writer.close()
+
+    # async def broadcast_message(self, m: Message):
+    #     """
+    #     Send a message asynchronous to all other processes.
+    #     :param m: Message object
+    #     :return:
+    #     """
+    #     # Retrieve addresses from address dictionary
+    #     for adress in self.adresses[i]:
+
+    #     host, port = self.addresses[to]
+    #     reader, writer = await asyncio.open_connection(host, port)
+    #     writer.write(m.encode())
+    #     await writer.drain()
+    #     writer.close()
+
 
     async def _handle_message(self, reader, writer):
         """
