@@ -14,8 +14,10 @@ class Message:
     sender = 0
     content = ''
     counter = 0
+    is_message = False
 
-    def __init__(self, content, sender, counter):
+    def __init__(self, is_message, content, sender, counter):
+        self.is_message = is_message
         self.sender = sender
         self.counter = counter
         self.content = content
@@ -59,6 +61,10 @@ class MessageBuffer:
 
     def get(self):
         return self.messages.get()
+    
+    def queue_value(self, i):
+        if self.size() > 0:
+            return self.messages.queue[i]
 
 
 class AbstractProcess(ABC):
@@ -72,9 +78,10 @@ class AbstractProcess(ABC):
     delay_min = 0
     delay_max = 1
 
-    def __init__(self, idx: int, addresses):
+    def __init__(self, idx: int, addresses, random_messages):
         self.idx = idx
         self.addresses: dict = addresses
+        self.random_messages: dict = random_messages
         self.host, self.port = self.addresses.pop(self.idx)
         self.buffer = MessageBuffer()
 

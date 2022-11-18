@@ -22,6 +22,16 @@ def load_addresses(path: Union[str, Path]) -> dict:
         addresses[int(pid)] = (host, int(port))
     return addresses
 
+def load_messages(path: Union[str, Path]) -> dict:
+    messages = {}
+    # Good practice to work with path objects
+    path = Path(path)
+    f = open(path, 'r')
+    i = 0
+    for line in f:
+        messages[i] = line[:-1]
+        i += 1
+    return messages
 
 async def run_process(pid: int):
     """
@@ -31,8 +41,9 @@ async def run_process(pid: int):
     """
     # Load addresses of all processes in the system
     addresses = load_addresses('resources/addresses.txt')
+    random_messages = load_messages('resources/messages.txt')
     # Start own process
-    p = EchoProcess(pid, addresses)
+    p = EchoProcess(pid, addresses, random_messages)
     # Start server for incomming connections
     await p.start_server()
     # Wait a bit for all processes to start up
