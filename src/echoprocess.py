@@ -1,5 +1,8 @@
 from abstractprocess import AbstractProcess, Message
 import random
+from pathlib import Path
+import os
+import sys
 
 class EchoProcess(AbstractProcess):
     """
@@ -10,9 +13,17 @@ class EchoProcess(AbstractProcess):
     The variables first_cycle and num_echo are examples of variables custom to the EchoProcess algorithm.
     """
     first_cycle = True
-    num_echo = 15
+    num_echo = 5
     counter = 1
     messages_awaiting_ack = []
+    custom_path = 'resources/delivered_messages_from_'+ sys.argv[1] +'.txt'
+    path = Path(custom_path)
+    print(Path)
+    if os.path.exists(path):
+        os.remove(path)
+    else:
+        print("The file does not exist")
+
 
     async def algorithm(self):
         # Only run in the beginning
@@ -25,6 +36,7 @@ class EchoProcess(AbstractProcess):
             msg_ack = Message(False, random_message, self.idx, self.counter, self.idx, self.counter)
             # Get first address we can find
             for i in range(len(self.addresses.keys())):
+                print(i)
                 to = list(self.addresses.keys())[i]
             # Send message
                 print(f' Sending MSG: {msg} to: {to}')
@@ -83,9 +95,31 @@ class EchoProcess(AbstractProcess):
                     print(f' Sending ACK: {msg.content}, from {msg.sender} with counter {msg.counter} to: {to}')
                     await self.send_message(ack_msg, to)
             
-            if m
+        number_of_messages = len(self.messages_awaiting_ack)
+        print(number_of_messages)
+        first_in_queue = 0
+        if number_of_messages > 0:
+            for i in range(int((number_of_messages)/2) -1):
+                if self.messages_awaiting_ack[first_in_queue][2] > self.messages_awaiting_ack[i * 2 + 2][2]:
+                    first_in_queue = i * 2 + 2
+                elif self.messages_awaiting_ack[first_in_queue][2] == self.messages_awaiting_ack[i * 2 + 2][2]:
+                    if self.messages_awaiting_ack[first_in_queue][1] > self.messages_awaiting_ack[i * 2 + 2][1]:
+                        first_in_queue = i * 2 + 2
+        
+            print(f'first in queue is: {first_in_queue} list is: {self.messages_awaiting_ack}')
+            if self.messages_awaiting_ack[first_in_queue + 1] == len(self.addresses.keys())+1:
+                print(f' Message delivered: {self.messages_awaiting_ack[first_in_queue][0]}, from {self.messages_awaiting_ack[first_in_queue][1]} with counter {self.messages_awaiting_ack[first_in_queue][2]}')
+                
+                f = open(self.path, 'a')
+                f.write(f' Message delivered: {self.messages_awaiting_ack[first_in_queue][0]}, from {self.messages_awaiting_ack[first_in_queue][1]} with counter {self.messages_awaiting_ack[first_in_queue][2]}')
+                f.close()
+                del self.messages_awaiting_ack[first_in_queue:first_in_queue + 2]
             
-            self.num_echo -= 1
-            if self.num_echo == 0:
-                print('Exiting algorithm')
-                self.running = False
+        self.num_echo -= 1
+        print(self.num_echo, number_of_messages)
+        if self.num_echo < 0 and number_of_messages == 0:
+            f = open(self.path, 'r')
+            for line in f:
+                print(line)
+            print('Exiting algorithm')
+            self.running = False
