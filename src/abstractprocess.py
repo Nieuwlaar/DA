@@ -16,11 +16,13 @@ class Message:
     counter = 0
     is_message = False
 
-    def __init__(self, is_message, content, sender, counter):
+    def __init__(self, is_message, content, sender, counter, origin_sender = -1, origin_counter = -1):
         self.is_message = is_message
         self.sender = sender
         self.counter = counter
         self.content = content
+        self.origin_sender = origin_sender
+        self.origin_counter = origin_counter
 
     def encode(self) -> bytes:
         """
